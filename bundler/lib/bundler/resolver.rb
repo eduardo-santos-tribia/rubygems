@@ -47,7 +47,7 @@ module Bundler
         h[k] = Resolver::Package.new(k)
       end
 
-      verify_gemfile_dependencies_are_found!(requirements)
+      requirements = verify_gemfile_dependencies_are_found!(requirements)
       result = @resolver.resolve(requirements).
         map(&:payload).
         reject {|sg| sg.name.end_with?("\0") }.
@@ -237,7 +237,7 @@ module Bundler
     end
 
     def verify_gemfile_dependencies_are_found!(requirements)
-      requirements.map! do |requirement|
+      requirements.map do |requirement|
         name = requirement.name
         @packages[name] = Resolver::Package.new(name, requirement.prerelease?)
 
@@ -257,7 +257,7 @@ module Bundler
           message = gem_not_found_message(name, requirement, source_for(name))
         end
         raise GemNotFound, message
-      end.compact!
+      end.compact
     end
 
     def gem_not_found_message(name, requirement, source, extra_message = "")
