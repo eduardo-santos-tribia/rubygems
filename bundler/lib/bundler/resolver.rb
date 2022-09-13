@@ -2,10 +2,10 @@
 
 module Bundler
   class Resolver
-    require_relative "vendored_molinillo"
+    require_relative "vendored_pub_grub"
     require_relative "resolver/base"
     require_relative "resolver/package"
-    require_relative "resolver/spec_group"
+    require_relative "resolver/version"
 
     include GemHelpers
 
@@ -25,10 +25,11 @@ module Bundler
       resolver.start(requirements)
     end
 
+    attr_reader :packages
+
     def initialize(source_requirements, base, gem_version_promoter, additional_base_requirements)
       @source_requirements = source_requirements
       @base = Resolver::Base.new(base, additional_base_requirements)
-      @resolver = Molinillo::Resolver.new(self, self)
       @results_for = {}
       @search_for = {}
       @gem_version_promoter = gem_version_promoter
@@ -44,70 +45,13 @@ module Bundler
       @packages = packages
 
       requirements = verify_gemfile_dependencies_are_found!(requirements)
-      @resolver.resolve(requirements).
-        map(&:payload).
-        map {|sg| sg.to_specs(@packages[sg.name].force_ruby_platform?) }.
-        flatten.
-        uniq
-    rescue Molinillo::VersionConflict => e
-      conflicts = e.conflicts
 
-      deps_to_unlock = conflicts.values.inject([]) do |deps, conflict|
-        deps |= conflict.requirement_trees.flatten.map {|req| base_requirements[req.name] }.compact
-      end
-
-      if deps_to_unlock.any?
-        @base.unlock_deps(deps_to_unlock)
-        reset_spec_cache
-        retry
-      end
-
-      message = version_conflict_message(e)
-      raise VersionConflict.new(conflicts.keys.uniq, message)
-    rescue Molinillo::CircularDependencyError => e
-      names = e.dependencies.sort_by(&:name).map {|d| "gem '#{d.name}'" }
-      raise CyclicDependencyError, "Your bundle requires gems that depend" \
-        " on each other, creating an infinite loop. Please remove" \
-        " #{names.count > 1 ? "either " : ""}#{names.join(" or ")}" \
-        " and try again."
+      require_relative "resolver/package_source"
+      source = Resolver::PackageSource.new(self, requirements, @gem_version_promoter)
+      solver = PubGrub::VersionSolver.new(source: source)
+      result = solver.solve
+      result.map {|package, version| version.to_specs(package.force_ruby_platform?) unless package.name == :root }.compact.flatten.uniq
     end
-
-    include Molinillo::UI
-
-    # Conveys debug information to the user.
-    #
-    # @param [Integer] depth the current depth of the resolution process.
-    # @return [void]
-    def debug(depth = 0)
-      return unless debug?
-      debug_info = yield
-      debug_info = debug_info.inspect unless debug_info.is_a?(String)
-      puts debug_info.split("\n").map {|s| depth == 0 ? "BUNDLER: #{s}" : "BUNDLER(#{depth}): #{s}" }
-    end
-
-    def debug?
-      return @debug_mode if defined?(@debug_mode)
-      @debug_mode =
-        ENV["BUNDLER_DEBUG_RESOLVER"] ||
-        ENV["BUNDLER_DEBUG_RESOLVER_TREE"] ||
-        ENV["DEBUG_RESOLVER"] ||
-        ENV["DEBUG_RESOLVER_TREE"] ||
-        false
-    end
-
-    def before_resolution
-      Bundler.ui.info "Resolving dependencies...", debug?
-    end
-
-    def after_resolution
-      Bundler.ui.info ""
-    end
-
-    def indicate_progress
-      Bundler.ui.info ".", false unless debug?
-    end
-
-    include Molinillo::SpecificationProvider
 
     def dependencies_for(specification)
       specification.dependencies
@@ -119,23 +63,23 @@ module Bundler
       locked_requirement = base_requirements[name]
       results = results.select {|spec| requirement_satisfied_by?(locked_requirement, nil, spec) } if locked_requirement
 
-      @gem_version_promoter.sort_versions(package, results).group_by(&:version).reduce([]) do |groups, (_, specs)|
-        platform_specs = package.platforms.flat_map {|platform| select_best_platform_match(specs, platform) }
+      results.group_by(&:version).reduce([]) do |groups, (version, specs)|
+        platform_specs = package.platforms.flat_map {|platform| select_best_platform_match(specs, platform) }.uniq
         next groups if platform_specs.empty?
 
         ruby_specs = select_best_platform_match(specs, Gem::Platform::RUBY)
-        groups << SpecGroup.new(ruby_specs) if ruby_specs.any?
+        groups << Resolver::Version.new(version, specs: ruby_specs) if ruby_specs.any?
 
         next groups if platform_specs == ruby_specs
 
-        groups << SpecGroup.new(platform_specs)
+        groups << Resolver::Version.new(version, specs: platform_specs)
 
         groups
       end
     end
 
     def search_for(dependency)
-      @search_for[dependency] ||= all_versions_for(@packages[dependency.name]).select {|spec| requirement_satisfied_by?(dependency, nil, spec) }
+      @search_for[dependency] ||= all_versions_for(@packages[dependency.name]).select {|version| requirement_satisfied_by?(dependency, nil, version.spec_group) }
     end
 
     def index_for(name)
