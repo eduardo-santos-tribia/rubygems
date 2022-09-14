@@ -146,10 +146,6 @@ module Bundler
       @local_changes = converge_locals
     end
 
-    def gem_version_promoter
-      @gem_version_promoter ||= GemVersionPromoter.new(@unlock[:gems])
-    end
-
     def resolve_only_locally!
       @remote = false
       sources.local_only!
@@ -482,7 +478,7 @@ module Bundler
     def resolution_packages
       @resolution_packages ||= begin
         packages = Hash.new do |h, k|
-          h[k] = Resolver::Package.new(k, @platforms, @originally_locked_specs[k].first&.version)
+          h[k] = Resolver::Package.new(k, @platforms, @originally_locked_specs[k].first&.version, unlock_gem?(k))
         end
 
         expanded_ependencies.each do |dep|
@@ -492,11 +488,16 @@ module Bundler
             name,
             dep.gem_platforms(@platforms),
             @originally_locked_specs[name].first&.version,
+            unlock_gem?(name),
             dep.force_ruby_platform,
             dep.prerelease?
           )
         end
       end
+    end
+
+    def unlock_gem?(name)
+      @unlock[:gems].empty? || @unlock[:gems].include?(name)
     end
 
     def filter_specs(specs, deps)
