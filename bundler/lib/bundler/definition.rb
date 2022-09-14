@@ -147,7 +147,7 @@ module Bundler
     end
 
     def gem_version_promoter
-      @gem_version_promoter ||= GemVersionPromoter.new(@originally_locked_specs, @unlock[:gems])
+      @gem_version_promoter ||= GemVersionPromoter.new(@unlock[:gems])
     end
 
     def resolve_only_locally!
@@ -273,7 +273,7 @@ module Bundler
         end
       else
         Bundler.ui.debug("Found changes from the lockfile, re-resolving dependencies because #{change_reason}")
-        resolver.start(expanded_dependencies)
+        start_resolution
       end
     end
 
@@ -479,6 +479,26 @@ module Bundler
       @expanded_dependencies ||= dependencies + metadata_dependencies
     end
 
+    def resolution_packages
+      @resolution_packages ||= begin
+        packages = Hash.new do |h, k|
+          h[k] = Resolver::Package.new(k, @platforms, @originally_locked_specs[k].first&.version)
+        end
+
+        expanded_ependencies.each do |dep|
+          name = dep.name
+
+          packages[name] = Resolver::Package.new(
+            name,
+            dep.gem_platforms(@platforms),
+            @originally_locked_specs[name].first&.version,
+            dep.force_ruby_platform,
+            dep.prerelease?
+          )
+        end
+      end
+    end
+
     def filter_specs(specs, deps)
       SpecSet.new(specs).for(deps, false, platforms)
     end
@@ -509,7 +529,7 @@ module Bundler
         break if incomplete_specs.empty?
 
         Bundler.ui.debug("The lockfile does not have all gems needed for the current platform though, Bundler will still re-resolve dependencies")
-        @resolve = resolver.start(expanded_dependencies, :exclude_specs => incomplete_specs)
+        @resolve = start_resolution(exclude_specs: incomplete_specs)
         specs = resolve.materialize(dependencies)
       end
 
@@ -517,6 +537,12 @@ module Bundler
       specs["bundler"] = bundler
 
       specs
+    end
+
+    def start_resolution(exclude_specs: [])
+      result = @resolver.start(expanded_dependencies, resolution_packages, exclude_specs: exclude_specs)
+
+      SpecSet.new(SpecSet.new(result).for(dependencies, false, @platforms))
     end
 
     def precompute_source_requirements_for_indirect_dependencies?
