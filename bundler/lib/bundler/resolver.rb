@@ -206,7 +206,6 @@ module Bundler
 
     def reset_spec_cache
       @search_for = {}
-      @gem_version_promoter.reset
     end
 
     # returns an integer \in (-\infty, 0]
