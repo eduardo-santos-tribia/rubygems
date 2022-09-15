@@ -327,7 +327,6 @@ bundler/lib/bundler/vendored_tmpdir.rb
 bundler/lib/bundler/vendored_tsort.rb
 bundler/lib/bundler/vendored_uri.rb
 bundler/lib/bundler/version.rb
-bundler/lib/bundler/version_ranges.rb
 bundler/lib/bundler/vlad.rb
 bundler/lib/bundler/worker.rb
 bundler/lib/bundler/yaml_serializer.rb

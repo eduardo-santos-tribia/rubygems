@@ -836,7 +836,6 @@ module Bundler
       metadata_dependencies.each do |dep|
         source_requirements[dep.name] = sources.metadata_source
       end
-      source_requirements[:default_bundler] = source_requirements["bundler"] || sources.default_source
       source_requirements["bundler"] = sources.metadata_source # needs to come last to override
       verify_changed_sources!
       source_requirements
