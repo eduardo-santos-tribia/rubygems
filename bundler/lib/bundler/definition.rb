@@ -146,6 +146,10 @@ module Bundler
       @local_changes = converge_locals
     end
 
+    def gem_version_promoter
+      @gem_version_promoter ||= GemVersionPromoter.new
+    end
+
     def resolve_only_locally!
       @remote = false
       sources.local_only!
@@ -467,7 +471,7 @@ module Bundler
       @resolver ||= begin
         last_resolve = converge_locked_specs
         remove_ruby_from_platforms_if_necessary!(current_dependencies)
-        Resolver.new(source_requirements, last_resolve, gem_version_promoter, additional_base_requirements_for_resolve(last_resolve), platforms)
+        Resolver.new(source_requirements, last_resolve, gem_version_promoter, additional_base_requirements_for_resolve(last_resolve))
       end
     end
 
@@ -481,7 +485,7 @@ module Bundler
           h[k] = Resolver::Package.new(k, @platforms, @originally_locked_specs[k].first&.version, unlock_gem?(k))
         end
 
-        expanded_ependencies.each do |dep|
+        expanded_dependencies.each do |dep|
           name = dep.name
 
           packages[name] = Resolver::Package.new(
@@ -493,6 +497,8 @@ module Bundler
             dep.prerelease?
           )
         end
+
+        packages
       end
     end
 
@@ -541,7 +547,7 @@ module Bundler
     end
 
     def start_resolution(exclude_specs: [])
-      result = @resolver.start(expanded_dependencies, resolution_packages, exclude_specs: exclude_specs)
+      result = resolver.start(expanded_dependencies, resolution_packages, exclude_specs: exclude_specs)
 
       SpecSet.new(SpecSet.new(result).for(dependencies, false, @platforms))
     end
