@@ -110,9 +110,10 @@ module Bundler::PubGrub
     def next_package_to_try
       solution.unsatisfied.min_by do |term|
         package = term.package
-        versions = source.versions_for(package, term.constraint.range)
+        range = term.constraint.range
+        versions = source.versions_for(package, range)
 
-        [@package_depth[package], versions.count]
+        [@package_depth[package], (@package_depth[package] > 1 || !range.is_a?(VersionRange) || !range.min&.prerelease?) ? versions.reject(&:prerelease?).count : versions.count]
       end.package
     end
 

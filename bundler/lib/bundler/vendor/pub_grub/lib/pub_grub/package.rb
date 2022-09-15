@@ -18,7 +18,7 @@ module Bundler::PubGrub
     end
 
     ROOT = Package.new(:root)
-    ROOT_VERSION = 0
+    ROOT_VERSION = Gem::Version.new(0)
 
     def self.root
       ROOT
