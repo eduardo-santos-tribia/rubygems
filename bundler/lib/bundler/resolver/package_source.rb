@@ -1,12 +1,10 @@
 # frozen_string_literal: true
 
-require_relative '../vendor/pub_grub/lib/pub_grub/basic_package_source'
-require_relative '../vendor/pub_grub/lib/pub_grub/rubygems'
 require_relative 'version'
 
 module Bundler
   class Resolver
-    class PackageSource < PubGrub::BasicPackageSource
+    class PackageSource
       def initialize(resolver, root_dependencies, gem_version_promoter)
         @resolver = resolver
         @root_dependencies = to_dependency_hash(root_dependencies)
@@ -55,6 +53,18 @@ module Bundler
 
       def repository_for(package)
         @resolver.source_for(package.name)
+      end
+
+      def versions_for(package, range=VersionRange.any)
+        versions = range.select_versions(@sorted_versions[package])
+
+        # Conditional avoids (among other things) calling
+        # sort_versions_by_preferred with the root package
+        if versions.size > 1
+          @gem_version_promoter.sort_versions(package, versions).reverse
+        else
+          versions
+        end
       end
 
       def incompatibilities_for(package, version)
