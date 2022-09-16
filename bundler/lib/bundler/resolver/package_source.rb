@@ -53,10 +53,6 @@ module Bundler
         Bundler::PubGrub::VersionConstraint.new(package, range: range_ruby)
       end
 
-      def sort_versions_by_preferred(package, sorted_versions)
-        @gem_version_promoter.sort_versions(package, sorted_versions).reverse
-      end
-
       def repository_for(package)
         @resolver.source_for(package.name)
       end
