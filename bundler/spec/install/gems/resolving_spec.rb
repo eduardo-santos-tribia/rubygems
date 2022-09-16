@@ -148,53 +148,6 @@ RSpec.describe "bundle install with install-time dependencies" do
 
       expect(the_bundle).to include_gems "net_a 1.0", "net_b 1.0", "net_c 1.0", "net_d 1.0", "net_e 1.0"
     end
-
-    context "with ENV['BUNDLER_DEBUG_RESOLVER'] set" do
-      it "produces debug output" do
-        gemfile <<-G
-          source "#{file_uri_for(gem_repo2)}"
-          gem "net_c"
-          gem "net_e"
-        G
-
-        bundle :install, :env => { "BUNDLER_DEBUG_RESOLVER" => "1", "DEBUG" => "1" }
-
-        expect(out).to include("BUNDLER: Starting resolution")
-      end
-    end
-
-    context "with ENV['DEBUG_RESOLVER'] set" do
-      it "produces debug output" do
-        gemfile <<-G
-          source "#{file_uri_for(gem_repo2)}"
-          gem "net_c"
-          gem "net_e"
-        G
-
-        bundle :install, :env => { "DEBUG_RESOLVER" => "1", "DEBUG" => "1" }
-
-        expect(out).to include("BUNDLER: Starting resolution")
-      end
-    end
-
-    context "with ENV['DEBUG_RESOLVER_TREE'] set" do
-      it "produces debug output" do
-        gemfile <<-G
-          source "#{file_uri_for(gem_repo2)}"
-          gem "net_c"
-          gem "net_e"
-        G
-
-        bundle :install, :env => { "DEBUG_RESOLVER_TREE" => "1", "DEBUG" => "1" }
-
-        activated_groups = "net_b (1.0) (ruby)"
-
-        expect(out).to include(" net_b").
-          and include("BUNDLER: Starting resolution").
-          and include("BUNDLER: Finished resolution").
-          and include("Attempting to activate [#{activated_groups}]")
-      end
-    end
   end
 
   describe "when a required ruby version" do
