@@ -394,7 +394,16 @@ RSpec.describe "bundle install with install-time dependencies" do
           gemspec
         G
 
-        expect(err).to include("Bundler found conflicting requirements for the Ruby\0 version:")
+        expect(err).to end_with <<~E.strip
+          Could not find compatible versions
+
+          Because every version of foo depends on requires-old-ruby >= 0
+            and every version of requires-old-ruby depends on Ruby < 3.1.2,
+            every version of foo requires Ruby < 3.1.2.
+          So, because Gemfile depends on foo >= 0
+            and current Ruby version is = 3.1.2,
+            version solving has failed.
+        E
       end
 
       it "installs the older version under rate limiting conditions" do
@@ -464,14 +473,13 @@ RSpec.describe "bundle install with install-time dependencies" do
         expect(out).to_not include("Gem::InstallError: require_ruby requires Ruby version > 9000")
 
         nice_error = strip_whitespace(<<-E).strip
-          Bundler found conflicting requirements for the Ruby\0 version:
-            In Gemfile:
-              require_ruby was resolved to 1.0, which depends on
-                Ruby\0 (> 9000)
+          Could not find compatible versions
 
-            Current Ruby\0 version:
-              Ruby\0 (#{error_message_requirement})
-
+          Because every version of require_ruby depends on Ruby > 9000
+            and Gemfile depends on require_ruby >= 0,
+            Ruby > 9000 is required.
+          So, because current Ruby version is = 3.1.2,
+            version solving has failed.
         E
         expect(err).to end_with(nice_error)
       end
@@ -487,14 +495,13 @@ RSpec.describe "bundle install with install-time dependencies" do
           expect(out).to_not include("Gem::InstallError: require_ruby requires Ruby version > 9000")
 
           nice_error = strip_whitespace(<<-E).strip
-            Bundler found conflicting requirements for the Ruby\0 version:
-              In Gemfile:
-                require_ruby was resolved to 1.0, which depends on
-                  Ruby\0 (> 9000)
+            Could not find compatible versions
 
-              Current Ruby\0 version:
-                Ruby\0 (#{error_message_requirement})
-
+            Because every version of require_ruby depends on Ruby > 9000
+              and Gemfile depends on require_ruby >= 0,
+              Ruby > 9000 is required.
+            So, because current Ruby version is = 3.1.2,
+              version solving has failed.
           E
           expect(err).to end_with(nice_error)
         end
@@ -532,14 +539,11 @@ RSpec.describe "bundle install with install-time dependencies" do
 
       expect(err).to_not include("Gem::InstallError: require_rubygems requires RubyGems version > 9000")
       nice_error = strip_whitespace(<<-E).strip
-        Bundler found conflicting requirements for the RubyGems\0 version:
-          In Gemfile:
-            require_rubygems was resolved to 1.0, which depends on
-              RubyGems\0 (> 9000)
-
-          Current RubyGems\0 version:
-            RubyGems\0 (= #{Gem::VERSION})
-
+        Because every version of require_rubygems depends on RubyGems > 9000
+          and Gemfile depends on require_rubygems >= 0,
+          RubyGems > 9000 is required.
+        So, because current RubyGems version is = 3.3.3,
+          version solving has failed.
       E
       expect(err).to end_with(nice_error)
     end
