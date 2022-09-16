@@ -46,9 +46,13 @@ module Bundler
       end
 
       def parse_dependency(package, dependency)
-        range_ruby = requirement_to_range(dependency)
+        range = if repository_for(package).is_a?(Source::Gemspec)
+          Bundler::PubGrub::VersionRange.any
+        else
+          requirement_to_range(dependency)
+        end
 
-        Bundler::PubGrub::VersionConstraint.new(package, range: range_ruby)
+        Bundler::PubGrub::VersionConstraint.new(package, range: range)
       end
 
       def repository_for(package)
