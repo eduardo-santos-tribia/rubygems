@@ -50,6 +50,8 @@ module Bundler
       require_relative "resolver/package_source"
       source = Resolver::PackageSource.new(self, requirements, @gem_version_promoter)
       solver = PubGrub::VersionSolver.new(source: source, root: root)
+
+      Bundler.ui.info "Resolving dependencies...", debug?
       result = solver.solve
       result.map {|package, version| version.to_specs(package.force_ruby_platform?) unless package.root? }.compact.flatten.uniq
     rescue PubGrub::SolveFailure => e
@@ -71,6 +73,14 @@ module Bundler
       end
 
       raise SolveFailure.new(e.message)
+    end
+
+    def debug?
+      ENV["BUNDLER_DEBUG_RESOLVER"] ||
+        ENV["BUNDLER_DEBUG_RESOLVER_TREE"] ||
+        ENV["DEBUG_RESOLVER"] ||
+        ENV["DEBUG_RESOLVER_TREE"] ||
+        false
     end
 
     def dependencies_for(specification)
