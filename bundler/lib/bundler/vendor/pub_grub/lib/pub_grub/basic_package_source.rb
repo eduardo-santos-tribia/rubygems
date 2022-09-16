@@ -89,6 +89,18 @@ module Bundler::PubGrub
       sorted_versions.sort_by { |version| indexes[version] }
     end
 
+    #
+    # Override me (maybe)
+    #
+    # The pacakge repository where esch package was searched. This is used to
+    # display error messages when no matching versions of a packge were found.
+    # If not overriden, the error will not mention any package repositories.
+    #
+    # Returns; Something that with a nice .to_s representation
+    def repository_for(package)
+      nil
+    end
+
     def initialize
       @root_package = Package.root
       @root_version = Package.root_version

@@ -57,6 +57,10 @@ module Bundler
         @gem_version_promoter.sort_versions(package, sorted_versions).reverse
       end
 
+      def repository_for(package)
+        @resolver.source_for(package.name)
+      end
+
       def incompatibilities_for(package, version)
         package_deps = @cached_dependencies[package]
         sorted_versions = @sorted_versions[package]
