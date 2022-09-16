@@ -1,14 +1,14 @@
-require "bundler/vendor/pub_grub/lib/pub_grub/package"
-require "bundler/vendor/pub_grub/lib/pub_grub/static_package_source"
-require "bundler/vendor/pub_grub/lib/pub_grub/term"
-require "bundler/vendor/pub_grub/lib/pub_grub/version_range"
-require "bundler/vendor/pub_grub/lib/pub_grub/version_constraint"
-require "bundler/vendor/pub_grub/lib/pub_grub/version_union"
-require "bundler/vendor/pub_grub/lib/pub_grub/version_solver"
-require "bundler/vendor/pub_grub/lib/pub_grub/incompatibility"
-require 'bundler/vendor/pub_grub/lib/pub_grub/solve_failure'
-require 'bundler/vendor/pub_grub/lib/pub_grub/failure_writer'
-require 'bundler/vendor/pub_grub/lib/pub_grub/version'
+require_relative "pub_grub/package"
+require_relative "pub_grub/static_package_source"
+require_relative "pub_grub/term"
+require_relative "pub_grub/version_range"
+require_relative "pub_grub/version_constraint"
+require_relative "pub_grub/version_union"
+require_relative "pub_grub/version_solver"
+require_relative "pub_grub/incompatibility"
+require_relative 'pub_grub/solve_failure'
+require_relative 'pub_grub/failure_writer'
+require_relative 'pub_grub/version'
 
 module Bundler::PubGrub
   class << self

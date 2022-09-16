@@ -1,7 +1,7 @@
-require 'bundler/vendor/pub_grub/lib/pub_grub/package'
-require 'bundler/vendor/pub_grub/lib/pub_grub/version_constraint'
-require 'bundler/vendor/pub_grub/lib/pub_grub/incompatibility'
-require 'bundler/vendor/pub_grub/lib/pub_grub/basic_package_source'
+require_relative 'package'
+require_relative 'version_constraint'
+require_relative 'incompatibility'
+require_relative 'basic_package_source'
 
 module Bundler::PubGrub
   class StaticPackageSource < BasicPackageSource

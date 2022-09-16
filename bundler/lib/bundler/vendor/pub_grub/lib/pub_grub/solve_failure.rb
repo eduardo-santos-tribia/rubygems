@@ -1,4 +1,4 @@
-require 'bundler/vendor/pub_grub/lib/pub_grub/failure_writer'
+require_relative 'failure_writer'
 
 module Bundler::PubGrub
   class SolveFailure < StandardError

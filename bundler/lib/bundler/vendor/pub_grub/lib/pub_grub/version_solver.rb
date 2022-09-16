@@ -1,7 +1,7 @@
-require 'bundler/vendor/pub_grub/lib/pub_grub/partial_solution'
-require 'bundler/vendor/pub_grub/lib/pub_grub/term'
-require 'bundler/vendor/pub_grub/lib/pub_grub/incompatibility'
-require 'bundler/vendor/pub_grub/lib/pub_grub/solve_failure'
+require_relative 'partial_solution'
+require_relative 'term'
+require_relative 'incompatibility'
+require_relative 'solve_failure'
 
 module Bundler::PubGrub
   class VersionSolver

@@ -1,4 +1,4 @@
-require 'bundler/vendor/pub_grub/lib/pub_grub/version_range'
+require_relative 'version_range'
 
 module Bundler::PubGrub
   class VersionConstraint

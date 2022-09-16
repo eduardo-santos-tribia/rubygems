@@ -1,4 +1,4 @@
-require 'bundler/vendor/pub_grub/lib/pub_grub/assignment'
+require_relative 'assignment'
 
 module Bundler::PubGrub
   class PartialSolution

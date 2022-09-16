@@ -1,5 +1,5 @@
-require 'bundler/vendor/pub_grub/lib/pub_grub/version_constraint'
-require 'bundler/vendor/pub_grub/lib/pub_grub/incompatibility'
+require_relative 'version_constraint'
+require_relative 'incompatibility'
 
 module Bundler::PubGrub
   # Types:
