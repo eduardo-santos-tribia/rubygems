@@ -2,6 +2,8 @@ require 'bundler/vendor/pub_grub/lib/pub_grub/failure_writer'
 
 module Bundler::PubGrub
   class SolveFailure < StandardError
+    attr_reader :incompatibility
+
     def initialize(incompatibility)
       @incompatibility = incompatibility
     end
